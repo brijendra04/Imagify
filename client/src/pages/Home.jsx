@@ -11,10 +11,9 @@ const Home = () => {
     <div>
       <Header />
       <Steps />
-      <Description /> 
+      <Description />
       <Testimonials />
       <GenerateBtn />
-    
     </div>
   );
 };

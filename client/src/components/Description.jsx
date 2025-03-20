@@ -1,9 +1,16 @@
 import React from "react";
 import { assets } from "../assets/assets";
+import { motion } from "framer-motion";
 
 const Description = () => {
   return (
-    <div className="flex flex-col items-center justify-center text-center my-24 p-6 md:px-28">
+    <motion.div
+      initial={{ opacity: 0.2, y: 100 }}
+      transition={{ duration: 1 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="flex flex-col items-center justify-center text-center my-24 p-6 md:px-28"
+    >
       <h1 className="text-3xl sm:text-4xl font-semibold">Create AI Images</h1>
       <p className="text-gray-500 mb-8">Turn your imagination into visuals</p>
 
@@ -14,7 +21,9 @@ const Description = () => {
           className="w-80 xl:w-96 rounded-lg "
         />
         <div>
-          <h2 className="text-3xl font-medium max-w-lg mb-4">Introducing the AI-Powered Text to Image Generator</h2>
+          <h2 className="text-3xl font-medium max-w-lg mb-4">
+            Introducing the AI-Powered Text to Image Generator
+          </h2>
           <p className="text-gray-600 mb-4 text-left">
             Easily bring your ideas to life with our free AI image generator.
             Whether you need stunning visuals or unique imagery, our tool
@@ -24,11 +33,14 @@ const Description = () => {
           </p>
           <p className="text-gray-600 text-left">
             Simply type your text, choose your preferred style, and let our AI
-            generator do the rest. Our tool is perfect for generating high-quality images for social media, blogs, websites, and more. Get started today and unleash your creativity with our AI image generator.
+            generator do the rest. Our tool is perfect for generating
+            high-quality images for social media, blogs, websites, and more. Get
+            started today and unleash your creativity with our AI image
+            generator.
           </p>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
