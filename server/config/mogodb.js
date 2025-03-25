@@ -1,13 +1,11 @@
 import mongoose from "mongoose";
 
 const connectDB = async () => {
+  mongoose.connection.on("connected", () => {
+    console.log("Databse connected");
+  });
 
-        mongoose.connection.on("connected", () => {
-            console.log("Databse connected")
-        })
-
-       await mongoose.connect(`${process.env.MONGODB_URI}/imagify`)
-
+  await mongoose.connect(`${process.env.MONGODB_URI}/imagify`);
 };
 
 export default connectDB;
