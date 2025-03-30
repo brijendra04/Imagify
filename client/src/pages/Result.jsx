@@ -1,35 +1,50 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { assets } from "../assets/assets";
-import {motion} from "framer-motion";
+import { motion } from "framer-motion";
+import { AppContext } from "../context/AppContext";
 
 const Result = () => {
   const [image, setImage] = useState(assets.sample_img_1);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState("");
+  const { generateImage } = useContext(AppContext); 
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+    if (!input.trim()) return; 
 
-  const onSubmitHandler = useState((e) => {});
+    setLoading(true);
+
+    try {
+      const generatedImage = await generateImage(input); 
+      if (generatedImage) {
+        setImage(generatedImage);
+        setIsImageLoaded(true);
+      }
+    } catch (error) {
+      console.error("Error generating image:", error);
+    }
+
+    setLoading(false);
+  };
 
   return (
     <motion.form
-    initial={{ opacity: 0.2, y: 100 }}
-    transition={{ duration: 1 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-
+      initial={{ opacity: 0.2, y: 100 }}
+      transition={{ duration: 1 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       onSubmit={onSubmitHandler}
-      className="flex flex-col  min-h-[90vh] items-center justify-center"
+      className="flex flex-col min-h-[90vh] items-center justify-center"
     >
       <div>
         <div className="relative">
-          <img src={assets.sample_img_1} alt="" className="max-w-sm rounded" />
-          <span
-            className={`abosolute bottom-0 left-0 h-1 bg-blue-500 ${
-              loading ? "w-full transation-all duration-[10s]" : "w-0"
-            }`}
-          />
+          <img src={image} alt="Generated Output" className="max-w-sm rounded" />
+          {loading && (
+            <span className="absolute bottom-0 left-0 h-1 bg-blue-500 w-full transition-all duration-[10s]" />
+          )}
         </div>
-        <p className={!loading ? "hidden" : ""}>Loading......</p>
+        {loading && <p className="text-gray-700 mt-2">Loading......</p>}
       </div>
 
       {!isImageLoaded && (
@@ -39,14 +54,15 @@ const Result = () => {
             value={input}
             type="text"
             placeholder="Describe what you want to generate"
-            className=" flex-1 bg-transparent outline-none ml-8 max-sm:w-20 placeholder-color"
+            className="flex-1 bg-transparent outline-none ml-8 placeholder-white"
           />
 
           <button
             type="submit"
             className="bg-zinc-900 px-10 sm:px-16 py-3 rounded-full"
+            disabled={loading} // Prevent multiple submissions
           >
-            Gennerate
+            {loading ? "Generating..." : "Generate"}
           </button>
         </div>
       )}
@@ -56,6 +72,7 @@ const Result = () => {
           <p
             onClick={() => {
               setIsImageLoaded(false);
+              setInput(""); 
             }}
             className="bg-transparent border border-zinc-900 text-black px-8 py-3 rounded-full cursor-pointer"
           >
@@ -63,7 +80,7 @@ const Result = () => {
           </p>
           <a
             href={image}
-            download
+            download="generated_image.png"
             className="bg-zinc-900 px-10 py-3 rounded-full cursor-pointer"
           >
             Download

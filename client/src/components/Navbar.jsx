@@ -1,11 +1,26 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { assets } from "../assets/assets";
 import { Link, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 
 const Navbar = () => {
-  const { user, setShowLogin } = useContext(AppContext);
+  const { user, setShowLogin, logout, credit } = useContext(AppContext);
   const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const handleClickOutside = (event) => {
+    if (!event.target.closest(".dropdown-menu")) {
+      setDropdownOpen(false);
+    }
+  };
+  
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="flex items-center justify-between py-4">
@@ -22,21 +37,30 @@ const Navbar = () => {
             >
               <img className="w-5" src={assets.credit_star} alt="Credits" />
               <p className="text-xs sm:text-sm font-medium text-gray-600">
-                Credits Left: 50
+                Credits Left: {credit ?? 0}
               </p>
             </button>
-            <p className="text-gray-600 max-sm:hidden pl-4">Hi, User</p>
-            <div className="relative group">
+
+            <p className="text-gray-600 max-sm:hidden pl-4">Hi, {user?.name}</p>
+            <div className="relative dropdown-menu">
               <img
                 src={assets.profile_icon}
-                className="w-10 drop-shadow"
+                className="w-10 drop-shadow cursor-pointer"
                 alt="Profile"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
               />
-              <div className="absolute hidden group-hover:block top-0 right-0 z-10 bg-white rounded-md border text-sm pt-12">
-                <ul className="list-none p-2">
-                  <li className="py-1 px-2 cursor-pointer">Logout</li>
-                </ul>
-              </div>
+              {dropdownOpen && (
+                <div className="absolute top-full right-0 z-10 bg-white rounded-md border text-sm pt-2">
+                  <ul className="list-none p-2">
+                    <li
+                      onClick={logout}
+                      className="py-1 px-2 cursor-pointer hover:bg-gray-100"
+                    >
+                      Logout
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         ) : (

@@ -6,10 +6,11 @@ const userRouter = express.Router();
 
 userRouter.post("/register", registerUser);
 userRouter.post("/login", loginUser);
-userRouter.post("/credits", userAuth , userCredits);
+userRouter.get("/credits", userAuth , userCredits);
+
 
 export default userRouter;
 
-//http://localhost:4000/api/user/register
-//http://localhost:4000/api/user/login
-//http://localhost:4000/api/user/credits
+//http://localhost:5000/api/user/register
+//http://localhost:5000/api/user/login
+//http://localhost:5000/api/user/credits
