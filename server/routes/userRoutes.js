@@ -1,16 +1,15 @@
-import express from "express";
-import { registerUser, loginUser, userCredits } from "../controllers/userController.js";
-import userAuth from "../middlewares/auth.js";
+import express from 'express';
+import {
+  registerUser,
+  loginUser,
+  getUserProfile,
+} from '../controllers/userController.js';
+import { protect } from '../middleware/authMiddleware.js';
 
-const userRouter = express.Router();
+const router = express.Router();
 
-userRouter.post("/register", registerUser);
-userRouter.post("/login", loginUser);
-userRouter.get("/credits", userAuth , userCredits);
+router.post('/register', registerUser);
+router.post('/login', loginUser);
+router.get('/me', protect, getUserProfile);
 
-
-export default userRouter;
-
-//http://localhost:5000/api/user/register
-//http://localhost:5000/api/user/login
-//http://localhost:5000/api/user/credits
+export default router;

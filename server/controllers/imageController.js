@@ -1,90 +1,69 @@
-import userModel from "../models/userModel.js";
-import FormData from "form-data";
-import axios from "axios";
+import mongoose from 'mongoose';
+import userModel from '../models/userModel.js';
+import imageModel from '../models/imageModel.js';
+import geminiService from '../services/geminiService.js';
+import catchAsync from '../utils/catchAsync.js';
+import AppError from '../utils/AppError.js';
 
-export const generateImage = async (req, res) => {
+const generateImage = catchAsync(async (req, res, next) => {
+  const { prompt } = req.body;
+
+  if (!prompt || prompt.trim() === '') {
+    return next(new AppError('Prompt is required', 400));
+  }
+  
+  if (prompt.length > 500) {
+    return next(new AppError('Prompt is too long. Maximum 500 characters allowed.', 400));
+  }
+
+  const session = await mongoose.startSession();
+  let responseData;
+
   try {
-    const { userId, prompt } = req.body;
+    await session.withTransaction(async () => {
+      const user = await userModel.findById(req.user.id).session(session);
 
-    if (
-      !userId ||
-      !prompt ||
-      typeof prompt !== "string" ||
-      prompt.trim() === ""
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid input. User ID and prompt are required.",
+      if (!user) {
+        throw new AppError('User not found', 404);
+      }
+
+      if (user.creditBalance <= 0) {
+        throw new AppError('Insufficient credits', 403);
+      }
+
+      const imageUrl = await geminiService.generateImageFromPrompt(prompt);
+
+      if (!imageUrl) {
+        throw new AppError('Image generation service failed', 502);
+      }
+
+      const newImage = new imageModel({
+        user: user._id,
+        prompt,
+        image: imageUrl,
       });
-    }
+      await newImage.save({ session });
 
-    const user = await userModel.findById(userId);
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
+      user.creditBalance -= 1;
+      await user.save({ session });
 
-    if (user.creditBalance <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Insufficient Balance",
+      responseData = {
+        image: newImage.image,
         creditBalance: user.creditBalance,
-      });
-    }
+        imageId: newImage._id,
+      };
+    });
 
-    if (!process.env.CLIPDROP_API) {
-      console.error("Clipdrop API Key is missing!");
-      return res
-        .status(500)
-        .json({ success: false, message: "Server error: Missing API key" });
-    }
-
-    const formData = new FormData();
-    formData.append("prompt", prompt); 
-
-    const headers = {
-      "x-api-key": process.env.CLIPDROP_API,
-      ...formData.getHeaders(),
-    };
-
-    console.log("Sending request to Clipdrop:", { prompt });
-
-    const { data } = await axios.post(
-      "https://clipdrop-api.co/text-to-image/v1",
-      formData,
-      { headers, responseType: "arraybuffer" }
-    );
-
-    console.log("Received response from Clipdrop...");
-
-    const base64Image = Buffer.from(data, "binary").toString("base64");
-    const resultImage = `data:image/png;base64,${base64Image}`;
-
-    const updatedUser = await userModel.findByIdAndUpdate(
-      user.id,
-      { $inc: { creditBalance: -1 } },
-      { new: true }
-    );
-
-    res.json({
+    res.status(201).json({
       success: true,
-      message: "Image generated successfully",
-      creditBalance: updatedUser.creditBalance,
-      resultImage,
+      message: 'Image generated successfully',
+      ...responseData,
     });
   } catch (error) {
-    let errorMessage = "Internal Server Error";
-    if (error.response?.data) {
-      try {
-        errorMessage = error.response.data.toString();
-      } catch (err) {
-        errorMessage = "Error parsing API response";
-      }
-    }
-
-    console.error("Clipdrop API Error:", errorMessage);
-
-    return res.status(500).json({ success: false, message: errorMessage });
+    next(error);
+  } finally {
+    await session.endSession();
   }
-};
+});
+
+export { generateImage };

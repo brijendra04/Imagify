@@ -1,129 +1,114 @@
-import React, { useEffect, useState } from "react";
-import { assets } from "../assets/assets";
-import { AppContext } from "../context/AppContext";
-import { useContext } from "react";
-import { motion } from "framer-motion";
-import { toast } from "react-toastify";
-import axios from "axios";
+import React, { useContext, useState, useEffect } from 'react';
+import { AppContext } from '/src/context/AppContext.jsx';
+import { motion } from 'framer-motion';
 
 const Login = () => {
-  const [state, setState] = useState("Login");
-  const { showLogin, setShowLogin, backendUrl, setToken, setUser } =
-    useContext(AppContext);
+  const { showLogin, setShowLogin, loginUser, registerUser } = useContext(AppContext);
+  const [isLogin, setIsLogin] = useState(true);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-  const onSubmitHandler = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    try {
-      if (state === "Login") {
-        const { data } = await axios.post(backendUrl + "/api/user/login", {
-          email,
-          password,
-        });
-
-        if (data.success) {
-          setToken(data.token);
-          setUser(data.user);
-          localStorage.setItem("token", data.token);
-          setShowLogin(false);
-        } else {
-          toast.error(data.message);
-        }
-      } else {
-        const { data } = await axios.post(backendUrl + "/api/user/register", {
-          name,
-          email,
-          password,
-        });
-
-        if (data.success) {
-          setToken(data.token);
-          setUser(data.user);
-          localStorage.setItem("token", data.token);
-          setShowLogin(false);
-        } else {
-          toast.error(data.message);
-        }
-      }
-    } catch (err) {
-      toast.error(err.message);
+    if (isLogin) {
+      await loginUser(formData.email, formData.password);
+    } else {
+      await registerUser(formData.name, formData.email, formData.password);
     }
   };
 
+  // Effect to disable body scroll when modal is open
   useEffect(() => {
-    document.body.style.overflow = "hidden";
+    if (showLogin) {
+      document.body.style.overflow = 'hidden';
+    }
     return () => {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = 'unset';
     };
-  }, []);
+  }, [showLogin]);
 
   if (!showLogin) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 bottom-0 z-10 backdrop-blur-sm bg-black/30 flex justify-center items-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
       <motion.form
-        onSubmit={onSubmitHandler}
+        onSubmit={handleSubmit}
         initial={{ opacity: 0.2, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="relative bg-white p-10 rounded-xl text-slate-500"
+        className="relative w-full max-w-md p-10 bg-white rounded-xl text-slate-500 shadow-2xl"
       >
-        <h1 className="text-center text-neutral-700 font-medium">{state}</h1>
-        <p className="text-sm">Welcome back! Please sign in to continue</p>
-        {state !== "Login" && (
-          <div className="border px-6 py-2 flex items-center gap-2 rounded-full mt-5">
-            <img src={assets.profile_icon} alt="" className="w-5" />
+        <img
+          onClick={() => setShowLogin(false)}
+          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E"
+          alt="close"
+          className="absolute w-5 cursor-pointer top-5 right-5"
+        />
+        <h1 className="text-2xl font-medium text-center text-neutral-700">{isLogin ? "Login" : "Sign Up"}</h1>
+        <p className="text-sm text-center">Welcome back! Please sign in to continue</p>
+
+        {!isLogin && (
+          <div className="flex items-center gap-2 px-6 py-2 mt-5 border rounded-full">
+             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
             <input
-              onChange={(e) => setName(e.target.value)}
-              value={name}
+              onChange={handleChange}
+              value={formData.name}
+              name="name"
               type="text"
-              className="outline-none text-sm"
+              className="w-full text-sm outline-none"
               placeholder="Full Name"
               required
             />
           </div>
         )}
-        <div className="border px-6 py-2 flex items-center gap-2 rounded-full mt-4">
-          <img src={assets.email_icon} alt="" className="w-3" />
+
+        <div className="flex items-center gap-2 px-6 py-2 mt-4 border rounded-full">
+          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" /></svg>
           <input
-            onChange={(e) => setEmail(e.target.value)}
-            value={email}
+            onChange={handleChange}
+            value={formData.email}
+            name="email"
             type="email"
-            className="outline-none text-sm"
+            className="w-full text-sm outline-none"
             placeholder="Email id"
             required
           />
         </div>
-        <div className="border px-6 py-2 flex items-center gap-2 rounded-full mt-4">
-          <img src={assets.lock_icon} alt="" className="w-3" />
+
+        <div className="flex items-center gap-2 px-6 py-2 mt-4 border rounded-full">
+          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
           <input
-            onChange={(e) => setPassword(e.target.value)}
-            value={password}
+            onChange={handleChange}
+            value={formData.password}
+            name="password"
             type="password"
-            className="outline-none text-sm"
+            className="w-full text-sm outline-none"
             placeholder="Password"
             required
           />
         </div>
-        <p className="text-sm text-blue-600 my-4 cursor-pointer">
-          Forgot password?
-        </p>
+
+        <p className="my-4 text-sm text-blue-600 cursor-pointer">Forgot password?</p>
+
         <button
           type="submit"
-          className="bg-blue-600 w-full text-white py-2 rounded-full"
+          className="w-full py-2 text-white bg-blue-600 rounded-full"
         >
-          {state === "Login" ? "login" : "create account"}
+          {isLogin ? "Login" : "Create Account"}
         </button>
-        {state === "Login" ? (
+
+        {isLogin ? (
           <p className="mt-5 text-center">
-            Don't have an account?
+            Don&apos;t have an account?{" "}
             <span
-              onClick={() => setState("Sign Up")}
+              onClick={() => setIsLogin(false)}
               className="text-blue-600 cursor-pointer"
             >
               Sign up
@@ -131,24 +116,19 @@ const Login = () => {
           </p>
         ) : (
           <p className="mt-5 text-center">
-            Already have an account?
+            Already have an account?{" "}
             <span
               className="text-blue-600 cursor-pointer"
-              onClick={() => setState("Login")}
+              onClick={() => setIsLogin(true)}
             >
               Login
             </span>
           </p>
         )}
-        <img
-          onClick={() => setShowLogin(false)}
-          src={assets.cross_icon}
-          alt=""
-          className="absolute top-5 right-5 w-5 cursor-pointer"
-        />
       </motion.form>
     </div>
   );
 };
 
 export default Login;
+

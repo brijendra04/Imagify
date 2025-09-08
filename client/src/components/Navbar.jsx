@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 
 const Navbar = () => {
-  const { user, setShowLogin, logout, credit } = useContext(AppContext);
+  const { user, setShowLogin, logout } = useContext(AppContext);
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -37,7 +37,7 @@ const Navbar = () => {
             >
               <img className="w-5" src={assets.credit_star} alt="Credits" />
               <p className="text-xs sm:text-sm font-medium text-gray-600">
-                Credits Left: {credit ?? 0}
+                Credits Left: {user?.creditBalance ?? 0}
               </p>
             </button>
 
