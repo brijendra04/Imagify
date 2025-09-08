@@ -28,7 +28,7 @@ const Header = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.8 }}
       >
-        <p>Best text to imgage generator</p>
+        <p>Best text to image generator</p>
         <img src={assets.star_icon} alt="" />
       </motion.div>
       <motion.h1 className="text-4xl  max-w-[300px] sm:text-7xl sm:max-w-[590px] mx-auto mt-10 text-center font-bold text-stone-800">
