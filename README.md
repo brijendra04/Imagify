@@ -9,7 +9,6 @@ With a sleek frontend and a robust backend, Imagify makes image generation and m
 
 Imagify provides a user-friendly platform for:
 - Generating AI-based images from text prompts.
-- Editing and enhancing uploaded images.
 - Storing and managing generated images securely.
 
 It’s built with a **MERN stack** (MongoDB, Express, React, Node.js) and integrates with external APIs for advanced image processing.
